@@ -12,7 +12,7 @@ function WriteBox({ edit }) {
   const [notes, updateNote, deleteNote] = useOutletContext();
   let currentNote = { title: "", body: "", when: "" };
   if (noteId >= 0 && notes.length > noteId) {
-    currentNote = notes[noteId];
+    currentNote = notes[noteId];//setting the details of the current note here from the notes array
   }
   const [noteBody, setNoteBody] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
@@ -39,13 +39,13 @@ function WriteBox({ edit }) {
         id: id,
       },
       noteId
-    );
+    );//saving from the writebox by calling the updateNote function in the Layout.js
   };
 
-  const tryDelete = () => {
+  const tryDelete = (id) => {
     const answer = window.confirm("Are you sure?");
     if (answer) {
-      deleteNote(noteId);
+      deleteNote(noteId, id);
     }
   };
 
@@ -88,7 +88,7 @@ function WriteBox({ edit }) {
                 className="button"
                 id="delete-button"
                 to=""
-                onClick={tryDelete}
+                onClick={() => tryDelete(id)}
               >
                 Delete
               </Link>
@@ -102,7 +102,7 @@ function WriteBox({ edit }) {
                 className="button"
                 id="delete-button"
                 to=""
-                onClick={tryDelete}
+                onClick={() => tryDelete(id)}
               >
                 Delete
               </Link>

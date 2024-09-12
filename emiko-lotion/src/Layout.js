@@ -38,12 +38,30 @@ function Layout() {
     [ user ]
   );
 
-  useEffect(
-    () => {
-        console.log("You have changed the email to ",{email});
-    },
-    [ email]
-  );
+  useEffect(() => {
+    // Define an async function to fetch and set the notes
+    const fetchNotes = async () => {
+        try {
+            console.log("You have changed the email to", email);
+
+            // Fetch the notes from the backend
+            const notesData = await getNotesFromBackend();
+
+            // Assuming 'notesData' is the array from the backend response
+            setNotes(notesData);  // Update the notes state with the retrieved notes
+
+            console.log("Here are the notes:", notesData);
+        } catch (error) {
+            console.error("Error fetching notes:", error);
+        }
+    };
+
+    // Call the fetchNotes function
+    if (email) {
+        fetchNotes();
+    }
+}, [email]);  // This will re-run when 'email' changes
+
 
   const navigate = useNavigate();
   const mainContainerRef = useRef(null);
@@ -52,10 +70,64 @@ function Layout() {
   const [editMode, setEditMode] = useState(false);
   const [currentNote, setCurrentNote] = useState(-1);
 
+  async function getNotesFromBackend () {
+    //const nurt = note.body.replaceAll("<p><br></p>", "");
+    const pack = {email:email}
+    try {
+      const response = await fetch(`${process.env.REACT_APP_GETNOTES_URL}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json'},
+          body: JSON.stringify(pack)
+      });
+      
+
+      const data = await response.json();
+
+      if (response.ok) {
+          console.log('Retrieved notes from backend', data);
+          return data;
+      } else if (response.status === 500) {
+          console.warn('Failed to retrieve notes from backend:', data.message);
+          return [];
+      }
   
+  } catch (error) {
+      console.log('An error retrieving the notes occurred. Please try again.');
+      return [];
+  }
+
+  }
+
+
+  async function deleteNoteInBackend (id) {
+    const pack = {email:email, id:id}
+    try {
+      const response = await fetch(`${process.env.REACT_APP_DELETENOTE_URL}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json'},
+          body: JSON.stringify(pack)
+      });
+      
+
+      const data = await response.json();
+
+      if (response.ok) {
+          console.log('Deleted note in backend', data);
+        
+      } else if (response.status === 500) {
+          console.warn('Failed to delete note in backend:', data.message);
+          
+      }
+  
+  } catch (error) {
+      console.log('An error deleting the note occurred. Please try again.');
+     
+  }
+
+  }
 
   useEffect(() => {
-    localStorage.setItem(localStorageKey, JSON.stringify(notes));
+    localStorage.setItem(localStorageKey, JSON.stringify(notes));//anytime the notes array changes, it is updated in local storage. Kampekida.
   }, [notes]);
 
   useEffect(() => {
@@ -64,9 +136,10 @@ function Layout() {
       mainContainerRef.current.style.maxHeight = `${height}px`;
     }
     const existing = localStorage.getItem(localStorageKey);
+    
     if (existing) {
       try {
-        setNotes(JSON.parse(existing));
+        setNotes(JSON.parse(existing));//filling in the notes array with the stuff in "existing" from local storage
       } catch {
         setNotes([]);
       }
@@ -85,15 +158,47 @@ function Layout() {
   }, [notes]);
 
   
+  async function saveNoteToBackend (note) {
+    //const nurt = note.body.replaceAll("<p><br></p>", "");
+    const pack = {email:email, currnote_id: note.id, notebody:note.body, title:note.title, when:note.when}
+    try {
+      const response = await fetch(`${process.env.REACT_APP_SAVENOTE_URL}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json'},
+          body: JSON.stringify(pack)
+      });
+      
+
+      const data = await response.json();
+
+      if (response.ok) {
+          console.log('Saved note to backend', data);
+
+      } else if (response.status === 500) {
+          console.warn('Failed to save note:', data.message);
+      }
+      else if (response.status === 400) {
+        console.warn('Missing required fields:', data.message);
+    }
+  } catch (error) {
+      console.log('An error saving the notes occurred. Please try again.');
+  }
+
+  }
+
+
 
   const saveNote = (note, index) => {
     note.body = note.body.replaceAll("<p><br></p>", "");
     setNotes([
-      ...notes.slice(0, index),
-      { ...note },
-      ...notes.slice(index + 1),
+      ...notes.slice(0, index),//Creates a new array with all elements before the index (non-inclusive).
+      { ...note },//Inserts a copy of the modified note at the index position (using object spread syntax to ensure immutability).
+      ...notes.slice(index + 1),//Adds all elements after the index to the array.
     ]);
     setCurrentNote(index);
+    //send note to the backend here
+    saveNoteToBackend(note);
+    //call save note with current note body (just pass note to saveNoteToBackend)
     setEditMode(false);
   };
 
@@ -108,9 +213,10 @@ function Layout() {
 
   
 
-  const deleteNote = (index) => {
+  const deleteNote = (index, id) => {
     setNotes([...notes.slice(0, index), ...notes.slice(index + 1)]);
     setCurrentNote(0);
+    deleteNoteInBackend(id)
     setEditMode(false);
   };
 
@@ -126,6 +232,9 @@ function Layout() {
     ]);
     setEditMode(true);
     setCurrentNote(0);
+
+    //Need to send the new note to the backend here
+    //call save note service with new body here
   };
 
   const logOut = () => {
@@ -135,7 +244,7 @@ function Layout() {
     setUser(null);
     localStorage.removeItem(localStorageKey);
   }
-
+  
   return (
     <div id="container">
       <header>

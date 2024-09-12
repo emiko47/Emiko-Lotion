@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import FormattedDate from "./FormattedDate";
 
-const max = 160;
+const max = 30;
 
 const trimDescription = (description, maxLength = max) => {
   return description.length > maxLength

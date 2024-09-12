@@ -12,7 +12,7 @@ def delete_item(email, note_id):
         }
     )
 
-def lambda_handler(event, context):
+def handler(event, context):
     body = json.loads(event["body"])
     note_id = body["id"]
     email = body["email"]
@@ -20,7 +20,7 @@ def lambda_handler(event, context):
     try: 
         delete_item(email, note_id)
         return{
-            "statusCode": 201,
+            "statusCode": 200,
             "body": json.dumps({
                     "message": "success"
             })

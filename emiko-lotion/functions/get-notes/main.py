@@ -6,22 +6,27 @@ dynamo_Source = boto3.resource("dynamodb")
 thetable = dynamo_Source.Table("lotion-30161505")
 
 def handler(event, context):
-    email = event["queryStringParameters"]["email"]
+    body = json.loads(event["body"])
+    email = body.get("email")
 
     try:
-        res = thetable.query(KeyConditionExpression = Key("email").eq(email))
-        return{
-            "statusCode": 201,
+        # Query the DynamoDB table using the provided email
+        res = thetable.query(KeyConditionExpression=Key("email").eq(email))
+
+        # Return the matching items
+        return {
+            "statusCode": 200,
             "body": json.dumps(
-                res["items"]
+                res["Items"]  
             )
         }
     except Exception as e:
         print(f"exception: {e}")
-        return{
-            "StatusCode": 500,
+        return {
+            "statusCode": 500,  
             "body": json.dumps(
-            {
-                "message:": str(e)
-            })
+                {
+                    "message": str(e)  
+                }
+            )
         }
