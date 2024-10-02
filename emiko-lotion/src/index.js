@@ -8,7 +8,7 @@ import Layout from './Layout';
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
-  <GoogleOAuthProvider clientId="586690601913-4us54n8tk6j3luiliskv9dqaeiluvijk.apps.googleusercontent.com">
+  <GoogleOAuthProvider clientId="472010505066-5onf2e1g6ke1500p78gftec6tl38780i.apps.googleusercontent.com">
     <React.StrictMode>
       <App />
     </React.StrictMode>
