@@ -182,6 +182,7 @@ button:hover,
 #note-info,
 #note-content {
   padding: 16px;
+  overflow:scroll;
 }
 #note-content p {
   margin-bottom: 10px;
